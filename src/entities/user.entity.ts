@@ -39,8 +39,8 @@ export class User {
   @Column({ nullable: true })
   customerId: number;
 
-  @Column({ nullable: true })
-  vendorId: number;
+  @Column({ nullable: true, length: 36 })
+  vendorId: string;
 
   @OneToOne(() => Customer, (customer) => customer.user)
   customer: Customer;

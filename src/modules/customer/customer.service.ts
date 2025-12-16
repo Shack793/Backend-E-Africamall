@@ -39,7 +39,7 @@ export class CustomerService {
 
   async findOne(id: string): Promise<CustomerResponseDto> { 
     const customer = await this.customerRepo.findOne({ 
-      where: { id }, 
+      where: { id: Number(id) }, 
       relations: ['user', 'addresses', 'cart'], 
     });
     if (!customer) throw new NotFoundException(`Customer with ID ${id} not found`);
@@ -63,7 +63,7 @@ export class CustomerService {
   }
 
   async update(id: string, dto: UpdateCustomerDto): Promise<CustomerResponseDto> { 
-    const customer = await this.customerRepo.findOne({ where: { id } }); 
+    const customer = await this.customerRepo.findOne({ where: { id: Number(id) } }); 
     if (!customer) throw new NotFoundException(`Customer with ID ${id} not found`);
 
     Object.assign(customer, dto);
@@ -72,7 +72,7 @@ export class CustomerService {
   }
 
   async remove(id: string): Promise<void> { 
-    const result = await this.customerRepo.delete(id); 
+    const result = await this.customerRepo.delete(Number(id)); 
     if (result.affected === 0) {
       throw new NotFoundException(`Customer with ID ${id} not found`);
     }

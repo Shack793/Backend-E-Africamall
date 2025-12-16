@@ -20,7 +20,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async login(loginDto: LoginDto) {
+  async login(loginDto: LoginDto, requiredRole?: string) {
     try {
       // Validate input
       if (!loginDto.email || !loginDto.password) {
@@ -39,6 +39,11 @@ export class AuthService {
         throw new UnauthorizedException('Account is deactivated');
       }
 
+      // Check if user has the required role
+      if (requiredRole && user.role !== requiredRole) {
+        throw new UnauthorizedException(`This login endpoint is for ${requiredRole}s only. Your account is registered as ${user.role}`);
+      }
+
       const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
       
       if (!isPasswordValid) {
@@ -48,7 +53,9 @@ export class AuthService {
       const payload = { 
         email: user.email, 
         sub: user.id, 
-        role: user.role 
+        role: user.role,
+        customerId: user.customerId,
+        vendorId: user.vendorId,
       };
       
       return {
@@ -57,6 +64,8 @@ export class AuthService {
           id: user.id,
           email: user.email,
           role: user.role,
+          customerId: user.customerId,
+          vendorId: user.vendorId,
         },
       };
     } catch (error) {
@@ -157,7 +166,11 @@ export class AuthService {
           throw new BadRequestException('Business name is required for vendor registration');
         }
 
+        const { v4: uuidv4 } = require('uuid');
+        const vendorId = uuidv4();
+
         const vendor = queryRunner.manager.create(Vendor, {
+          id: vendorId,
           phone: registerDto.phone,
           name: registerDto.businessName,
           email,
@@ -177,7 +190,7 @@ export class AuthService {
         const savedVendor = await queryRunner.manager.save(Vendor, vendor);
         
 
-        savedUser.vendorId = Number(savedVendor.id);
+        savedUser.vendorId = savedVendor.id;
         await queryRunner.manager.save(User, savedUser);
       }
 

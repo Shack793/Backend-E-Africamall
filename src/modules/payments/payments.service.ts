@@ -37,7 +37,7 @@ export class PaymentsService {
       throw new NotFoundException('Order not found');
     }
 
-    const customer = await this.customerRepo.findOne({ where: { id: customerId } });
+    const customer = await this.customerRepo.findOne({ where: { id: Number(customerId) } });
     if (!customer) {
       throw new NotFoundException('Customer not found');
     }
@@ -77,7 +77,7 @@ export class PaymentsService {
       throw new NotFoundException('Order not found');
     }
 
-    const customer = await this.customerRepo.findOne({ where: { id: customerId } });
+    const customer = await this.customerRepo.findOne({ where: { id: Number(customerId) } });
     if (!customer) {
       throw new NotFoundException('Customer not found');
     }

@@ -30,7 +30,7 @@ export class OrderService {
 
   async createOrder(dto: CreateOrderDto, customerId: string): Promise<Order> { // Changed to string
     // Remove .toString() since customerId is now string
-    const customer = await this.customerRepo.findOne({ where: { id: customerId } });
+    const customer = await this.customerRepo.findOne({ where: { id: Number(customerId) } });
     if (!customer) throw new NotFoundException('Customer not found');
 
     const order = this.orderRepo.create({
@@ -73,11 +73,11 @@ export class OrderService {
 
   // Update other methods that use customerId to use string
   async getCustomerOrders(customerId: string): Promise<Order[]> { // Add this method if needed
-    const customer = await this.customerRepo.findOne({ where: { id: customerId } });
+    const customer = await this.customerRepo.findOne({ where: { id: Number(customerId) } });
     if (!customer) throw new NotFoundException('Customer not found');
 
     return await this.orderRepo.find({
-      where: { customer: { id: customerId } },
+      where: { customer: { id: Number(customerId) } },
       relations: ['orderDetails', 'orderDetails.product'],
       order: { createdAt: 'DESC' },
     });
@@ -87,7 +87,7 @@ export class OrderService {
     const order = await this.orderRepo.findOne({
       where: { 
         id: orderId,
-        customer: { id: customerId }
+        customer: { id: Number(customerId) }
       },
       relations: ['orderDetails', 'orderDetails.product', 'customer'],
     });

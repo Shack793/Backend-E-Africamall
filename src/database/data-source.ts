@@ -10,6 +10,7 @@ import { Product } from '../entities/product.entity';
 import { ProductVariation } from '../entities/product-variation.entity';
 import { Order } from '../entities/order.entity';
 import { OrderDetail } from '../entities/order-detail.entity';
+import { Payment } from '../entities/payment.entity';
 import { Transaction } from '../entities/transaction.entity';
 import { BusinessSetting } from '../entities/business-setting.entity';
 import { ShippingMethod } from '../entities/shipping-method.entity';
@@ -37,6 +38,7 @@ export const AppDataSource = new DataSource({
     ProductVariation,
     Order,
     OrderDetail,
+    Payment,
     Transaction,
     BusinessSetting,
     ShippingMethod,
@@ -47,5 +49,6 @@ export const AppDataSource = new DataSource({
     Address,
   ],
   migrations: ['src/migrations/*.ts'], 
-  synchronize: false,
+  synchronize: true,
+  logging: true,
 });

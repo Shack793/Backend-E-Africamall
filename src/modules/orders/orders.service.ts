@@ -67,7 +67,7 @@ export class OrdersService {
     await queryRunner.startTransaction();
 
     try {
-      const customer = await this.customerRepo.findOne({ where: { id: customerId } }); 
+      const customer = await this.customerRepo.findOne({ where: { id: Number(customerId) } }); 
       if (!customer) {
         throw new NotFoundException('Customer not found');
       }
