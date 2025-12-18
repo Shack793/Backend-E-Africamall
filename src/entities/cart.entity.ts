@@ -1,28 +1,59 @@
-// cart.entity.ts
-import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { Customer } from './customer.entity';
+import { 
+  Entity, 
+  PrimaryGeneratedColumn, 
+  Column, 
+  CreateDateColumn, 
+  UpdateDateColumn, 
+  ManyToOne, 
+  JoinColumn,
+  Index
+} from 'typeorm';
+import { User } from './user.entity';
 import { Product } from './product.entity';
 
 @Entity('carts')
+@Index(['customerId', 'productId'])
+@Index(['customerId'])
 export class Cart {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Customer, (customer) => customer.cart)
-  customer: Customer;
+  @Column('bigint')
+  customerId: number;
 
-  @ManyToOne(() => Product)
-  product: Product;
+  @Column('bigint')
+  productId: number;
 
-  @Column()
+  @Column('int', { default: 1 })
   quantity: number;
 
-  @Column('decimal', { precision: 10, scale: 2 })
-  price: number; // Add price to track the price at time of adding to cart
+  @Column({ type: 'text', nullable: true })
+  variation: string;
+
+  @Column('decimal', { precision: 15, scale: 2, nullable: true })
+  price: number;
+
+  @Column({ default: false })
+  isGuest: boolean;
+
+  @Column({ default: true })
+  isChecked: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  productMetaData: string;
 
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date; // Add updatedAt for when quantities change
+  updatedAt: Date;
+
+  // Relations
+  @ManyToOne(() => User, user => user.carts)
+  @JoinColumn({ name: 'customerId' })
+  customer: User;
+
+  @ManyToOne(() => Product, product => product.carts)
+  @JoinColumn({ name: 'productId' })
+  product: Product;
 }

@@ -6,6 +6,7 @@ import {
   CreateDateColumn, 
   UpdateDateColumn,
   OneToMany,
+  ManyToOne,
   OneToOne,
   JoinColumn
 } from 'typeorm';
@@ -32,7 +33,7 @@ export class Customer {
   @Column({ unique: true, length: 20 })
   phone: string;
 
-  @OneToMany(() => Payment, payment => payment.customer)
+  @OneToMany(() => Payment, payment => payment.customerId)
   payments: Payment[];
 
   @OneToMany(() => Order, order => order.customer)
@@ -51,9 +52,9 @@ export class Customer {
   updatedAt: Date;
 
   @Column({ nullable: true, unique: true })
-  userId: string;
+  userId: number;
 
-  @OneToOne(() => User, user => user.customer)
+  @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'userId' })
   user: User;
 }

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn, JoinColumn } from 'typeorm';
 import { Order } from './order.entity';
 
 @Entity('transactions')
@@ -6,7 +6,11 @@ export class Transaction {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Order, (order) => order.transactionId)
+  @Column('bigint')
+  orderId: number;
+
+  @ManyToOne(() => Order, { nullable: true })
+  @JoinColumn({ name: 'orderId' })
   order: Order;
 
   @Column()

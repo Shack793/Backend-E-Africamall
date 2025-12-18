@@ -2,8 +2,8 @@ import {
   Entity,
   PrimaryColumn,
   Column,
-  OneToOne,
   OneToMany,
+  ManyToOne,
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
@@ -37,7 +37,7 @@ export class Vendor {
   @Column({ nullable: true })
   userId: string;
 
-  @OneToOne(() => User, (user) => user.vendor)
+  @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'userId' })
   user: User;
 

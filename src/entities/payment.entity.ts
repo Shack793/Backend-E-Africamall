@@ -5,10 +5,10 @@ import {
   CreateDateColumn, 
   UpdateDateColumn,
   ManyToOne,
-  JoinColumn
+  JoinColumn,
+  Index
 } from 'typeorm';
 import { Order } from './order.entity';
-import { Customer } from './customer.entity';
 
 export enum PaymentStatus {
   PENDING = 'pending',
@@ -16,45 +16,42 @@ export enum PaymentStatus {
   FAILED = 'failed',
   REFUNDED = 'refunded',
   CANCELLED = 'cancelled',
-  PAID = "PAID"
+  PAID = 'paid'
 }
 
 export enum PaymentMethod {
+  COD = 'cod',
   STRIPE = 'stripe',
   PAYPAL = 'paypal',
-  CASH = 'cash',
-  BANK_TRANSFER = 'bank_transfer'
+  BANK_TRANSFER = 'bank_transfer',
+  MOBILE_PAYMENT = 'mobile_payment',
+  SSLCOMMERZ = 'sslcommerz',
+  RAZOR = 'razor'
 }
 
-@Entity()
+@Entity('payments')
+@Index(['orderId', 'status'])
+@Index(['orderId'])
 export class Payment {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @ManyToOne(() => Order, order => order.payments)
-  @JoinColumn({ name: 'orderId' })
-  order: Order;
+  @Column('bigint')
+  orderId: number;
 
-  @Column()
-  orderId: string;
-
-  @ManyToOne(() => Customer, customer => customer.payments)
-  @JoinColumn({ name: 'customerId' })
-  customer: Customer;
-
-  @Column()
+  @Column('bigint', { nullable: true })
   customerId: number;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column('decimal', { precision: 15, scale: 2 })
   amount: number;
 
-  @Column({ default: 'USD' })
+  @Column({ length: 10, default: 'USD' })
   currency: string;
 
   @Column({
     type: 'enum',
     enum: PaymentMethod,
-    default: PaymentMethod.STRIPE
+    default: PaymentMethod.COD
   })
   paymentMethod: PaymentMethod;
 
@@ -65,30 +62,50 @@ export class Payment {
   })
   status: PaymentStatus;
 
-  @Column({ nullable: true })
-  paymentIntentId: string;
-
-  @Column({ nullable: true })
+  @Column({ length: 255, nullable: true })
   transactionId: string;
+
+  @Column({ length: 255, nullable: true })
+  gatewayTransactionId: string;
 
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ type: 'json', nullable: true })
-  metadata: any;
+  @Column({ type: 'text', nullable: true })
+  metadata: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   processedAt: Date;
 
-  @Column({ nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   refundedAt: Date;
+
+  @Column('decimal', { precision: 15, scale: 2, default: 0, nullable: true })
+  refundAmount: number;
+
+  @Column({ default: false })
+  isRefundable: boolean;
+
+  @Column({ length: 100, nullable: true })
+  refundReason: string;
+
+  @Column({ length: 50, default: 'inhouse' })
+  paymentGateway: string;
+
+  @Column({ default: 0 })
+  retryCount: number;
+
+  @Column({ type: 'text', nullable: true })
+  failureReason: string;
 
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
-    isRefundable: boolean;
-    paymentGateway: string;
-    method: PaymentMethod;
+
+  // Relations
+  @ManyToOne(() => Order, order => order.payments, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'orderId' })
+  order: Order;
 }

@@ -6,16 +6,15 @@ import {
   UpdateDateColumn,
   OneToMany,
   ManyToOne,
-  JoinColumn
+  JoinColumn,
+  Index
 } from 'typeorm';
 import { Payment } from './payment.entity';
 import { OrderDetail } from './order-detail.entity';
-import { Customer } from './customer.entity';
+import { User } from './user.entity';
 
 export enum OrderStatus {
   PENDING = 'pending',
-  CONFIRMED = 'confirmed',
-  PAID = 'paid',
   PROCESSING = 'processing',
   SHIPPED = 'shipped',
   DELIVERED = 'delivered',
@@ -23,64 +22,185 @@ export enum OrderStatus {
   REFUNDED = 'refunded'
 }
 
-@Entity()
+export enum PaymentStatus {
+  PAID = 'paid',
+  UNPAID = 'unpaid',
+  PARTIAL = 'partial',
+  CANCELLED = 'cancelled'
+}
+
+@Entity('orders')
+@Index(['customerId', 'createdAt'])
+@Index(['orderStatus'])
+@Index(['paymentStatus'])
 export class Order {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @ManyToOne(() => Customer, customer => customer.orders)
-  @JoinColumn({ name: 'customerId' })
-  customer: Customer;
-
-  @Column()
+  @Column('bigint')
   customerId: number;
 
-  @Column('decimal', { precision: 10, scale: 2 })
-  totalAmount: number;
+  @Column({ default: false })
+  isGuest: boolean;
 
-  @Column({ default: 'USD' })
-  currency: string;
+  @Column({ length: 50, default: 'user' })
+  customerType: string;
+
+  @Column({
+    type: 'enum',
+    enum: PaymentStatus,
+    default: PaymentStatus.UNPAID,
+  })
+  paymentStatus: PaymentStatus;
 
   @Column({
     type: 'enum',
     enum: OrderStatus,
-    default: OrderStatus.PENDING
+    default: OrderStatus.PENDING,
   })
-  status: OrderStatus;
+  orderStatus: OrderStatus;
+
+  @Column({ length: 100, default: 'cod' })
+  paymentMethod: string;
+
+  @Column({ length: 255, nullable: true })
+  transactionRef: string;
+
+  @Column({ length: 100, nullable: true })
+  paymentBy: string;
 
   @Column({ type: 'text', nullable: true })
+  paymentNote: string;
+
+  @Column('decimal', { precision: 15, scale: 2 })
+  orderAmount: number;
+
+  @Column('decimal', { precision: 15, scale: 2, default: 0 })
+  paidAmount: number;
+
+  @Column('decimal', { precision: 15, scale: 2, default: 0 })
+  bringChangeAmount: number;
+
+  @Column({ length: 10, nullable: true })
+  bringChangeAmountCurrency: string;
+
+  @Column('decimal', { precision: 15, scale: 2, default: 0 })
+  adminCommission: number;
+
+  @Column({ default: false })
+  isPause: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  cause: string;
+
+  @Column('text')
   shippingAddress: string;
 
+  @Column('decimal', { precision: 15, scale: 2, default: 0 })
+  discountAmount: number;
+
+  @Column({ length: 50, default: 'amount' })
+  discountType: string;
+
+  @Column({ length: 255, nullable: true })
+  couponCode: string;
+
+  @Column({ length: 50, default: 'inhouse' })
+  couponDiscountBearer: string;
+
+  @Column({ length: 50, default: 'seller' })
+  shippingResponsibility: string;
+
+  @Column('bigint', { nullable: true })
+  shippingMethodId: number;
+
+  @Column('decimal', { precision: 15, scale: 2, default: 0 })
+  shippingCost: number;
+
+  @Column({ default: false })
+  isShippingFree: boolean;
+
+  @Column({ length: 255, nullable: true })
+  orderGroupId: string;
+
+  @Column({ length: 255, nullable: true })
+  verificationCode: string;
+
+  @Column({ default: false })
+  verificationStatus: boolean;
+
+  @Column('bigint', { nullable: true })
+  sellerId: number;
+
+  @Column({ length: 50, nullable: true })
+  sellerIs: string;
+
+  @Column('text', { nullable: true })
+  shippingAddressData: string;
+
+  @Column('text', { nullable: true })
+  billingAddressData: string;
+
+  @Column('bigint', { nullable: true })
+  deliveryManId: number;
+
+  @Column('decimal', { precision: 15, scale: 2, default: 0 })
+  deliverymanCharge: number;
+
+  @Column({ type: 'datetime', nullable: true })
+  expectedDeliveryDate: Date;
+
   @Column({ type: 'text', nullable: true })
-  billingAddress: string;
+  orderNote: string;
 
-  @Column({ nullable: true })
-  orderNumber: string;
+  @Column('bigint', { nullable: true })
+  billingAddress: number;
 
   @Column({ type: 'text', nullable: true })
-  notes: string;
+  orderType: string;
 
-  @OneToMany(() => Payment, payment => payment.order)
-  payments: Payment[];
+  @Column('decimal', { precision: 15, scale: 2, default: 0 })
+  extraDiscount: number;
 
-  @OneToMany(() => OrderDetail, orderDetail => orderDetail.order)
-  orderDetails: OrderDetail[];
+  @Column({ length: 50, default: 'amount' })
+  extraDiscountType: string;
+
+  @Column({ length: 50, default: 'admin' })
+  freeDeliveryBearer: string;
+
+  @Column({ default: false })
+  checked: boolean;
+
+  @Column({ length: 50, nullable: true })
+  shippingType: string;
+
+  @Column({ length: 50, nullable: true })
+  deliveryType: string;
+
+  @Column({ length: 255, nullable: true })
+  deliveryServiceName: string;
+
+  @Column({ length: 255, nullable: true })
+  thirdPartyDeliveryTrackingId: string;
 
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
-  transactionId: any;
-    cancelledAt: Date;
-    taxAmount: any;
-    shippingCost: any;
-    discountAmount: any;
-    paymentStatus: string;
-    paymentMethod: string;
-    customerNotes: string | undefined;
-    adminNotes: string | undefined;
-    shippedAt: Date | undefined;
-    deliveredAt: Date | undefined;
-    total: any;
+
+  // Relations
+  @ManyToOne(() => User, user => user.ordersAsCustomer)
+  @JoinColumn({ name: 'customerId' })
+  customer: User;
+
+  @OneToMany(() => OrderDetail, detail => detail.order, { eager: true })
+  orderDetails: OrderDetail[];
+
+  @ManyToOne(() => User, user => user.ordersAsDeliveryMan, { nullable: true })
+  @JoinColumn({ name: 'deliveryManId' })
+  deliveryMan: User;
+
+  @OneToMany(() => Payment, payment => payment.order)
+  payments: Payment[];
 }

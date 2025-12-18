@@ -1,50 +1,78 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { Customer } from './customer.entity';
+import { 
+  Entity, 
+  PrimaryGeneratedColumn, 
+  Column, 
+  CreateDateColumn, 
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index
+} from 'typeorm';
+import { User } from './user.entity';
 
-@Entity('addresses')
-export class Address {
+@Entity('shipping_addresses')
+@Index(['customerId'])
+@Index(['customerId', 'isBilling'])
+export class ShippingAddress {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Customer, (customer) => customer.addresses)
-  customer: Customer;
+  @Column('bigint')
+  customerId: number;
 
-  @Column()
-  addressLine: string;
+  @Column({ length: 100, nullable: true })
+  label: string;
 
-  @Column({ nullable: true })
-  addressLine2: string; // For apartment/suite numbers
+  @Column({ length: 255 })
+  address: string;
 
-  @Column()
+  @Column({ length: 255, nullable: true })
+  address2: string;
+
+  @Column({ length: 100 })
   city: string;
 
-  @Column()
-  region: string; // State/Province/Region
+  @Column({ length: 100, nullable: true })
+  state: string;
 
-  @Column()
+  @Column({ length: 100 })
   country: string;
 
-  @Column({ nullable: true })
-  postalCode: string;
+  @Column({ length: 20, nullable: true })
+  zip: string;
+
+  @Column({ length: 20, nullable: true })
+  phone: string;
+
+  @Column({ length: 255, nullable: true })
+  email: string;
+
+  @Column('decimal', { precision: 10, scale: 8, nullable: true })
+  latitude: number;
+
+  @Column('decimal', { precision: 10, scale: 8, nullable: true })
+  longitude: number;
 
   @Column({ default: false })
-  isDefault: boolean; // Mark as default shipping address
+  isDefault: boolean;
 
   @Column({ default: false })
-  isBilling: boolean; // Mark as billing address
+  isBilling: boolean;
 
-  @Column({ nullable: true })
-  label: string; // "Home", "Work", "Office", etc.
-
-  @Column({ nullable: true })
-  phone: string; // Phone number for this address
-
-  @Column({ nullable: true })
-  instructions: string; // Delivery instructions
+  @Column({ type: 'text', nullable: true })
+  instructions: string;
 
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  // Relations
+  @ManyToOne(() => User, user => user.shippingAddresses)
+  @JoinColumn({ name: 'customerId' })
+  customer: User;
 }
+
+// Export as Address for backward compatibility
+export { ShippingAddress as Address };
